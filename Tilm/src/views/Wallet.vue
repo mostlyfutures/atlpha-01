@@ -55,23 +55,7 @@
     </main>
     
     <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-      <router-link to="/" class="nav-button">
-        <Icon icon="mdi:home" />
-      </router-link>
-      <router-link to="/browse" class="nav-button">
-        <Icon icon="mdi:compass" />
-      </router-link>
-      <router-link to="/post" class="nav-button">
-        <Icon icon="mdi:cart" />
-      </router-link>
-      <button class="nav-button">
-        <Icon icon="mdi:bell" />
-      </button>
-      <router-link to="/wallet" class="nav-button active">
-        <Icon icon="mdi:account" />
-      </router-link>
-    </nav>
+
   </div>
 </template>
 
@@ -184,7 +168,7 @@ onMounted(() => {
 }
 
 .balance-card, .assets-card {
-  background-color: white;
+  background-color: rgb(0, 0, 0);
   border-radius: 16px;
   padding: 16px;
 }
