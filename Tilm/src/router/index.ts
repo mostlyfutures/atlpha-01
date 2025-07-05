@@ -15,7 +15,7 @@ const router = createRouter({
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue')
+      component: () => import('../views/Browse.vue')
     },
     {
       path: '/post',
@@ -26,6 +26,14 @@ const router = createRouter({
       path: '/pin/:id',
       name: 'pin',
       component: () => import('../views/PinView.vue')
+    },  // Added missing comma here
+    {
+      path: '/wallet',
+      name: 'wallet',
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/Wallet.vue')
     }
   ]
 })
