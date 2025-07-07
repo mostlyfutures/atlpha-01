@@ -1,12 +1,30 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const showMobileMenu = ref(false);
+const isHeaderVisible = ref(false);
+
+const handleMouseMove = (event: MouseEvent) => {
+  // Show header if cursor is in the top 100px of the screen
+  if (event.clientY <= 100) {
+    isHeaderVisible.value = true;
+  } else {
+    isHeaderVisible.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('mousemove', handleMouseMove);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('mousemove', handleMouseMove);
+});
 </script>
 
 <template>
-  <header class="app-header">
+  <header class="app-header" :class="{ 'header-visible': isHeaderVisible }">
     <!-- Mobile menu button -->
     <button class="mobile-menu-btn" @click="showMobileMenu = !showMobileMenu">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
@@ -21,7 +39,7 @@ const showMobileMenu = ref(false);
         </svg>
       </router-link>
       <nav class="nav-buttons">
-        <router-link to="/" class="nav-button active">Home</router-link>
+        <router-link to="/" class="nav-button active"><Icon icon="mdi:home" /></router-link>
         <router-link to="/browse" class="nav-button">Browse</router-link>
         <router-link to="/post" class="nav-button">Post</router-link>
       </nav>
@@ -49,7 +67,7 @@ const showMobileMenu = ref(false);
     <!-- Mobile menu overlay -->
     <div v-if="showMobileMenu" class="mobile-menu-overlay" @click="showMobileMenu = false">
       <div class="mobile-menu">
-        <router-link to="/" class="mobile-nav-item" @click="showMobileMenu = false">Home</router-link>
+        <router-link to="/" class="mobile-nav-item" @click="showMobileMenu = false"><Icon icon="mdi:home" /></router-link>
         <router-link to="/browse" class="mobile-nav-item" @click="showMobileMenu = false">Browse</router-link>
         <router-link to="/post" class="mobile-nav-item" @click="showMobileMenu = false">Post</router-link>
         <router-link to="/wallet" class="mobile-nav-item" @click="showMobileMenu = false">Wallet</router-link>
@@ -62,6 +80,7 @@ const showMobileMenu = ref(false);
 .app-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 8px 16px;
   background-color: var(--color-background);
   color: var(--color-text);
@@ -75,6 +94,31 @@ const showMobileMenu = ref(false);
   width: 100%;
   box-sizing: border-box;
   min-width: 320px;
+  flex-wrap: nowrap;
+  
+  /* Auto-hide functionality */
+  transform: translateY(-100%);
+  transition: transform 0.3s ease-in-out;
+  backdrop-filter: blur(10px);
+  background-color: rgba(69, 68, 68, 0.95);  
+}
+
+.app-header.header-visible {
+  transform: translateY(0);
+}
+
+/* Show header on page load for a brief moment */
+.app-header {
+  animation: initialShow 2s ease-in-out;
+}
+
+@keyframes initialShow {
+  0%, 15% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
 }
 
 .mobile-menu-btn {
@@ -85,16 +129,31 @@ const showMobileMenu = ref(false);
   padding: 8px;
   border-radius: 50%;
   color: var(--color-text);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.05);
 }
 
 .header-left, .header-right {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  flex-basis: auto;
 }
 
 .header-left {
+  flex: 0 1 auto;
   min-width: 0;
+}
+
+.header-right {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: 4px;
 }
 
 .logo {
@@ -107,16 +166,19 @@ const showMobileMenu = ref(false);
   margin-right: 8px;
   cursor: pointer;
   flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
 .logo:hover {
   background-color: #f0f0f0;
+  transform: scale(1.1);
 }
 
 .nav-buttons {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: nowrap;
 }
 
 .nav-button {
@@ -130,7 +192,13 @@ const showMobileMenu = ref(false);
   color: var(--color-text);
   background-color: transparent;
   white-space: nowrap;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.nav-button:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-1px);
 }
 
 .nav-button.active {
@@ -138,14 +206,24 @@ const showMobileMenu = ref(false);
   color: var(--color-background);
 }
 
+.nav-button.active:hover {
+  background-color: var(--color-heading);
+  opacity: 0.9;
+}
+
 .search-bar {
-  flex-grow: 1;
+  flex: 1 1 auto;
   margin: 0 16px;
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 0;
+  min-width: 200px;
   max-width: 600px;
+  transition: all 0.2s ease;
+}
+
+.search-bar:hover {
+  transform: scale(1.02);
 }
 
 .search-bar input {
@@ -155,23 +233,27 @@ const showMobileMenu = ref(false);
   border-radius: 20px;
   background-color: #f0f0f0;
   font-size: 14px;
-  min-width: 0;
+  flex: 1;
+  cursor: text;
+  transition: all 0.2s ease;
+}
+
+.search-bar input:hover {
+  background-color: #e8e8e8;
 }
 
 .search-bar input:focus {
   outline: none;
   background-color: #e0e0e0;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 .search-icon {
   position: absolute;
   left: 12px;
   color: #767676;
-}
-
-.header-right {
-  justify-content: flex-end;
-  gap: 4px;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .icon-button {
@@ -185,14 +267,22 @@ const showMobileMenu = ref(false);
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .icon-button:hover {
   background-color: #f0f0f0;
+  color: var(--color-text);
+  transform: scale(1.1);
 }
 
 .icon-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.nav-button svg {
   width: 20px;
   height: 20px;
 }
@@ -206,6 +296,7 @@ const showMobileMenu = ref(false);
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: none;
+  cursor: pointer;
 }
 
 .mobile-menu {
@@ -216,6 +307,7 @@ const showMobileMenu = ref(false);
   background-color: var(--color-background);
   border-bottom: 1px solid #e0e0e0;
   padding: 16px;
+  cursor: default;
 }
 
 .mobile-nav-item {
@@ -226,10 +318,13 @@ const showMobileMenu = ref(false);
   border-radius: 8px;
   margin-bottom: 8px;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .mobile-nav-item:hover {
   background-color: #f0f0f0;
+  transform: translateX(4px);
 }
 
 /* Tablet styles */
@@ -240,6 +335,7 @@ const showMobileMenu = ref(false);
   
   .search-bar {
     margin: 0 12px;
+    min-width: 150px;
     max-width: 300px;
   }
   
@@ -258,10 +354,19 @@ const showMobileMenu = ref(false);
     width: 18px;
     height: 18px;
   }
+  
+  .nav-button svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 /* Mobile styles */
 @media (max-width: 640px) {
+  .app-header {
+    flex-wrap: nowrap;
+  }
+  
   .mobile-menu-btn {
     display: flex;
     order: -1;
@@ -274,7 +379,9 @@ const showMobileMenu = ref(false);
   
   .search-bar {
     margin: 0 8px;
+    min-width: 120px;
     max-width: 200px;
+    flex: 1 1 auto;
   }
   
   .search-bar input {
@@ -284,6 +391,7 @@ const showMobileMenu = ref(false);
   
   .header-right {
     gap: 2px;
+    flex: 0 0 auto;
   }
   
   .icon-button {
@@ -304,6 +412,7 @@ const showMobileMenu = ref(false);
   
   .search-bar {
     margin: 0 6px;
+    min-width: 100px;
     max-width: 150px;
   }
   
@@ -332,10 +441,19 @@ const showMobileMenu = ref(false);
     width: 16px;
     height: 16px;
   }
+  
+  .nav-button svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* Extra small screens */
 @media (max-width: 360px) {
+  .search-bar {
+    min-width: 80px;
+  }
+  
   .search-bar input::placeholder {
     font-size: 11px;
   }
