@@ -4,6 +4,7 @@ export interface Pin {
   id: number;
   title: string;
   image: string;
+  category?: string; // Added category property
 }
 
 export const usePinsStore = defineStore('pins', {
@@ -22,7 +23,8 @@ export const usePinsStore = defineStore('pins', {
       const data: Pin[] = imageFiles.map((file, index) => ({
         id: index + 1,
         title: file.replace(/\.(jpg|jpeg|png|gif|heic)$/i, '').replace(/_/g, ' '),
-        image: `/images/${file}`
+        image: `/images/${file}`,
+        category: 'Nature' // Assign a dummy category for now
       }));
 
       this.allPins = data;
