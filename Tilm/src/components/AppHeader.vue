@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 const showMobileMenu = ref(false);
 const isHeaderVisible = ref(false);
+const route = useRoute();
 
 const handleMouseMove = (event: MouseEvent) => {
   // Show header if cursor is in the top 100px of the screen
   if (event.clientY <= 100) {
     isHeaderVisible.value = true;
   } else {
-    isHeaderVisible.value = false;
+    // Add a small delay before hiding to prevent flickering during navigation
+    setTimeout(() => {
+      if (event.clientY > 100) {
+        isHeaderVisible.value = false;
+      }
+    }, 100);
   }
 };
 
@@ -20,6 +27,18 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('mousemove', handleMouseMove);
+});
+
+// Keep header visible during route changes
+watch(() => route.path, () => {
+  // Show header briefly when route changes
+  isHeaderVisible.value = true;
+  setTimeout(() => {
+    // Only hide if mouse is not in the top area
+    if (window.event && (window.event as MouseEvent).clientY > 100) {
+      isHeaderVisible.value = false;
+    }
+  }, 500);
 });
 </script>
 
@@ -41,7 +60,7 @@ onUnmounted(() => {
       <nav class="nav-buttons">
         <router-link to="/" class="nav-button active"><Icon icon="mdi:home" /></router-link>
         <router-link to="/browse" class="nav-button">Browse</router-link>
-        <router-link to="/post" class="nav-button">Post</router-link>
+        <router-link to="/post" class="nav-button"><Icon icon="mdi:plus" /></router-link>
       </nav>
     </div>
 
@@ -54,11 +73,9 @@ onUnmounted(() => {
 
     <div class="header-right">
       <a href="#" class="icon-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917z"/></svg>
+        <Icon icon="mdi:bookshelf" />
       </a>
-      <a href="#" class="icon-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6-.097 1.016-.417 2.13-.771 2.966-.079.186.074.394.273.362 2.256-.37 3.597-.938 4.18-1.234A9.06 9.06 0 0 0 8 15z"/></svg>
-      </a>
+
       <router-link to="/wallet" class="icon-button">
         <Icon icon="ph:wallet" />
       </router-link>
@@ -69,7 +86,7 @@ onUnmounted(() => {
       <div class="mobile-menu">
         <router-link to="/" class="mobile-nav-item" @click="showMobileMenu = false"><Icon icon="mdi:home" /></router-link>
         <router-link to="/browse" class="mobile-nav-item" @click="showMobileMenu = false">Browse</router-link>
-        <router-link to="/post" class="mobile-nav-item" @click="showMobileMenu = false">Post</router-link>
+        <router-link to="/post" class="mobile-nav-item" @click="showMobileMenu = false"><Icon icon="mdi:plus" /></router-link>
         <router-link to="/wallet" class="mobile-nav-item" @click="showMobileMenu = false">Wallet</router-link>
       </div>
     </div>
@@ -110,6 +127,10 @@ onUnmounted(() => {
 /* Show header on page load for a brief moment */
 .app-header {
   animation: initialShow 2s ease-in-out;
+}
+
+.app-header.header-visible {
+  animation: none; /* Disable animation when header is manually shown */
 }
 
 @keyframes initialShow {
@@ -217,8 +238,8 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 200px;
-  max-width: 600px;
+  min-width: 175px;
+  max-width: 526px;
   transition: all 0.2s ease;
 }
 
@@ -228,7 +249,7 @@ onUnmounted(() => {
 
 .search-bar input {
   width: 100%;
-  padding: 10px 16px 10px 36px;
+  padding: 9px 14px 9px 33px;
   border: none;
   border-radius: 20px;
   background-color: #f0f0f0;
@@ -287,6 +308,15 @@ onUnmounted(() => {
   height: 20px;
 }
 
+.nav-button .mdi-plus {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
 .mobile-menu-overlay {
   position: fixed;
   top: 0;
@@ -335,8 +365,8 @@ onUnmounted(() => {
   
   .search-bar {
     margin: 0 12px;
-    min-width: 150px;
-    max-width: 300px;
+    min-width: 131px;
+    max-width: 263px;
   }
   
   .nav-button {
@@ -359,6 +389,15 @@ onUnmounted(() => {
     width: 18px;
     height: 18px;
   }
+  
+  .nav-button .mdi-plus {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
 }
 
 /* Mobile styles */
@@ -379,13 +418,13 @@ onUnmounted(() => {
   
   .search-bar {
     margin: 0 8px;
-    min-width: 120px;
-    max-width: 200px;
+    min-width: 105px;
+    max-width: 175px;
     flex: 1 1 auto;
   }
   
   .search-bar input {
-    padding: 8px 12px 8px 32px;
+    padding: 7px 12px 7px 28px;
     font-size: 13px;
   }
   
@@ -412,12 +451,12 @@ onUnmounted(() => {
   
   .search-bar {
     margin: 0 6px;
-    min-width: 100px;
-    max-width: 150px;
+    min-width: 88px;
+    max-width: 131px;
   }
   
   .search-bar input {
-    padding: 6px 10px 6px 28px;
+    padding: 5px 9px 5px 23px;
     font-size: 12px;
   }
   
@@ -446,6 +485,15 @@ onUnmounted(() => {
     width: 16px;
     height: 16px;
   }
+  
+  .nav-button .mdi-plus {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
 }
 
 /* Extra small screens */
@@ -461,5 +509,19 @@ onUnmounted(() => {
   .header-right .icon-button:nth-child(2) {
     display: none;
   }
+}
+
+.app-container {
+  min-height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+}
+
+.main-content {
+  padding-top: 80px;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
 }
 </style>

@@ -1,18 +1,10 @@
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue';
+import MasonryGrid from '../components/MasonryGrid.vue';
 </script>
 
 <template>
-  <main>
-    <div class="container">
-      <h1>Browse</h1>
-      <p>This is for browsing</p>
-    </div>
-  </main>
+  <AppHeader />
+  <MasonryGrid />
 </template>
 
-<style scoped>
-.container {
-  margin: 0 auto;
-  padding: 1rem;
-}
-</style>
