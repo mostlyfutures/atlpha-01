@@ -15,7 +15,7 @@ const handleMouseMove = (event: MouseEvent) => {
     // Add a small delay before hiding to prevent flickering during navigation
     setTimeout(() => {
       if (event.clientY > 100) {
-        isHeaderVisible.value = false;
+    isHeaderVisible.value = false;
       }
     }, 100);
   }
