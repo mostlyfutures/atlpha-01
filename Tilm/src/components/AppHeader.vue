@@ -1,44 +1,65 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 
 const showMobileMenu = ref(false);
-const isHeaderVisible = ref(false);
-const route = useRoute();
+const isHeaderVisible = ref(true); // Start visible
+let hideTimeout: number | null = null;
+let showTimeout: number | null = null;
 
 const handleMouseMove = (event: MouseEvent) => {
+  // Clear any existing timeouts to prevent conflicts
+  if (hideTimeout) {
+    clearTimeout(hideTimeout);
+    hideTimeout = null;
+  }
+  if (showTimeout) {
+    clearTimeout(showTimeout);
+    showTimeout = null;
+  }
+
   // Show header if cursor is in the top 100px of the screen
   if (event.clientY <= 100) {
-    isHeaderVisible.value = true;
+    if (!isHeaderVisible.value) {
+      isHeaderVisible.value = true;
+    }
   } else {
-    // Add a small delay before hiding to prevent flickering during navigation
-    setTimeout(() => {
-      if (event.clientY > 100) {
-    isHeaderVisible.value = false;
-      }
-    }, 100);
+    // Add a small delay before hiding to prevent flickering
+    if (isHeaderVisible.value) {
+      hideTimeout = setTimeout(() => {
+        isHeaderVisible.value = false;
+      }, 150);
+    }
   }
 };
 
+const handleMouseLeave = () => {
+  // Hide header when mouse leaves the window
+  if (hideTimeout) {
+    clearTimeout(hideTimeout);
+  }
+  hideTimeout = setTimeout(() => {
+    isHeaderVisible.value = false;
+  }, 300);
+};
+
 onMounted(() => {
+  // Show header initially for 3 seconds
+  showTimeout = setTimeout(() => {
+    isHeaderVisible.value = false;
+  }, 3000);
+
   document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseleave', handleMouseLeave);
 });
 
 onUnmounted(() => {
+  // Clean up timeouts and event listeners
+  if (hideTimeout) clearTimeout(hideTimeout);
+  if (showTimeout) clearTimeout(showTimeout);
+  
   document.removeEventListener('mousemove', handleMouseMove);
-});
-
-// Keep header visible during route changes
-watch(() => route.path, () => {
-  // Show header briefly when route changes
-  isHeaderVisible.value = true;
-  setTimeout(() => {
-    // Only hide if mouse is not in the top area
-    if (window.event && (window.event as MouseEvent).clientY > 100) {
-      isHeaderVisible.value = false;
-    }
-  }, 500);
+  document.removeEventListener('mouseleave', handleMouseLeave);
 });
 </script>
 
@@ -52,15 +73,19 @@ watch(() => route.path, () => {
     </button>
 
     <div class="header-left">
-      <router-link to="/" class="logo">
+      <router-link to="/profile" class="logo">
         <svg height="32" width="32" viewBox="0 0 24 24" fill="#e60023">
           <path d="M0 12c0 5.123 3.2 9.488 7.705 11.245-.272-1.116-.343-2.441.04-3.66.456-1.424 2.938-12.41 2.938-12.41s-.747-.498-.747-2.184c0-2.045 1.188-3.575 2.653-3.575 1.248 0 1.852.938 1.852 2.053 0 1.248-.797 3.12-1.21 4.832-.343 1.424.718 2.58 2.112 2.58 2.53 0 4.45-2.653 4.45-6.512 0-3.422-2.45-5.82-5.98-5.82-4.088 0-6.46 3.04-6.46 6.182 0 1.248.477 2.58 1.06 3.355.12.16.14.272.1.432-.04.16-.24.978-.272 1.116-.06.272-.24.343-.514.213-1.9-.938-3.13-3.64-3.13-5.84C2.35 5.16 5.54 0 12.33 0c6.75 0 11.67 4.71 11.67 11.13 0 6.572-4.15 11.87-9.83 11.87-1.9 0-3.7-.978-4.32-2.053z"></path>
         </svg>
       </router-link>
       <nav class="nav-buttons">
-        <router-link to="/" class="nav-button active"><Icon icon="mdi:home" /></router-link>
+        <router-link to="/" class="nav-button active">
+          <Icon icon="material-symbols:home" width="20" height="20" />
+        </router-link>
         <router-link to="/browse" class="nav-button">Browse</router-link>
-        <router-link to="/post" class="nav-button"><Icon icon="mdi:plus" /></router-link>
+        <router-link to="/post" class="nav-button">
+          <Icon icon="mdi:plus" width="20" height="20" />
+        </router-link>
       </nav>
     </div>
 
@@ -73,20 +98,25 @@ watch(() => route.path, () => {
 
     <div class="header-right">
       <a href="#" class="icon-button">
-        <Icon icon="mdi:bookshelf" />
+        <Icon icon="mdi:bookshelf" width="20" height="20" />
       </a>
-
       <router-link to="/wallet" class="icon-button">
-        <Icon icon="ph:wallet" />
+        <Icon icon="ph:wallet" width="20" height="20" />
       </router-link>
     </div>
 
     <!-- Mobile menu overlay -->
     <div v-if="showMobileMenu" class="mobile-menu-overlay" @click="showMobileMenu = false">
       <div class="mobile-menu">
-        <router-link to="/" class="mobile-nav-item" @click="showMobileMenu = false"><Icon icon="mdi:home" /></router-link>
+        <router-link to="/" class="mobile-nav-item" @click="showMobileMenu = false">
+          <Icon icon="material-symbols:home" width="20" height="20" />
+          <span>Home</span>
+        </router-link>
         <router-link to="/browse" class="mobile-nav-item" @click="showMobileMenu = false">Browse</router-link>
-        <router-link to="/post" class="mobile-nav-item" @click="showMobileMenu = false"><Icon icon="mdi:plus" /></router-link>
+        <router-link to="/post" class="mobile-nav-item" @click="showMobileMenu = false">
+          <Icon icon="mdi:plus" width="20" height="20" />
+          <span>Post</span>
+        </router-link>
         <router-link to="/wallet" class="mobile-nav-item" @click="showMobileMenu = false">Wallet</router-link>
       </div>
     </div>
@@ -99,7 +129,7 @@ watch(() => route.path, () => {
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
-  background-color: var(--color-background);
+  background-color: rgba(69, 68, 68, 0.95);
   color: var(--color-text);
   position: fixed;
   top: 0;
@@ -112,34 +142,16 @@ watch(() => route.path, () => {
   box-sizing: border-box;
   min-width: 320px;
   flex-wrap: nowrap;
-  
-  /* Auto-hide functionality */
-  transform: translateY(-100%);
-  transition: transform 0.3s ease-in-out;
   backdrop-filter: blur(10px);
-  background-color: rgba(69, 68, 68, 0.95);  
+  
+  /* Smooth auto-hide functionality */
+  transform: translateY(-100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
 .app-header.header-visible {
   transform: translateY(0);
-}
-
-/* Show header on page load for a brief moment */
-.app-header {
-  animation: initialShow 2s ease-in-out;
-}
-
-.app-header.header-visible {
-  animation: none; /* Disable animation when header is manually shown */
-}
-
-@keyframes initialShow {
-  0%, 15% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-100%);
-  }
 }
 
 .mobile-menu-btn {
@@ -215,6 +227,9 @@ watch(() => route.path, () => {
   white-space: nowrap;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .nav-button:hover {
@@ -238,8 +253,8 @@ watch(() => route.path, () => {
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 175px;
-  max-width: 526px;
+  min-width: 200px;
+  max-width: 600px;
   transition: all 0.2s ease;
 }
 
@@ -249,7 +264,7 @@ watch(() => route.path, () => {
 
 .search-bar input {
   width: 100%;
-  padding: 9px 14px 9px 33px;
+  padding: 10px 16px 10px 36px;
   border: none;
   border-radius: 20px;
   background-color: #f0f0f0;
@@ -303,20 +318,6 @@ watch(() => route.path, () => {
   height: 20px;
 }
 
-.nav-button svg {
-  width: 20px;
-  height: 20px;
-}
-
-.nav-button .mdi-plus {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-}
-
 .mobile-menu-overlay {
   position: fixed;
   top: 0;
@@ -341,7 +342,9 @@ watch(() => route.path, () => {
 }
 
 .mobile-nav-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 12px 16px;
   text-decoration: none;
   color: var(--color-text);
@@ -365,8 +368,8 @@ watch(() => route.path, () => {
   
   .search-bar {
     margin: 0 12px;
-    min-width: 131px;
-    max-width: 263px;
+    min-width: 150px;
+    max-width: 300px;
   }
   
   .nav-button {
@@ -383,20 +386,6 @@ watch(() => route.path, () => {
   .icon-button svg {
     width: 18px;
     height: 18px;
-  }
-  
-  .nav-button svg {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .nav-button .mdi-plus {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
   }
 }
 
@@ -418,13 +407,13 @@ watch(() => route.path, () => {
   
   .search-bar {
     margin: 0 8px;
-    min-width: 105px;
-    max-width: 175px;
+    min-width: 120px;
+    max-width: 200px;
     flex: 1 1 auto;
   }
   
   .search-bar input {
-    padding: 7px 12px 7px 28px;
+    padding: 8px 12px 8px 32px;
     font-size: 13px;
   }
   
@@ -451,12 +440,12 @@ watch(() => route.path, () => {
   
   .search-bar {
     margin: 0 6px;
-    min-width: 88px;
-    max-width: 131px;
+    min-width: 100px;
+    max-width: 150px;
   }
   
   .search-bar input {
-    padding: 5px 9px 5px 23px;
+    padding: 6px 10px 6px 28px;
     font-size: 12px;
   }
   
@@ -480,20 +469,6 @@ watch(() => route.path, () => {
     width: 16px;
     height: 16px;
   }
-  
-  .nav-button svg {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .nav-button .mdi-plus {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-  }
 }
 
 /* Extra small screens */
@@ -509,19 +484,5 @@ watch(() => route.path, () => {
   .header-right .icon-button:nth-child(2) {
     display: none;
   }
-}
-
-.app-container {
-  min-height: 100vh;
-  width: 100vw;
-  margin: 0;
-  padding: 0;
-}
-
-.main-content {
-  padding-top: 80px;
-  width: 100vw;
-  margin: 0;
-  padding: 0;
 }
 </style>
